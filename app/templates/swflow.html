@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>交换机实时流量</title>
+    <meta charset="utf-8" />
+	<!-- idea and code swiped from
+	http://assorted.svn.sourceforge.net/viewvc/assorted/real-time-plotter/trunk/src/rtp.html?view=markup -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+	<script src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+        <script src="https://github.com/flot/flot/raw/master/jquery.flot.time.js"></script>
+	<script>
+	var iets = "";
+	window.onload = function() {
+		var data = {};
+		try {
+			var s = new WebSocket("ws://localhost:8000/data?group={{ groupname }}");
+		}
+		catch (e) {
+			var s = new MozWebSocket("ws://localhost:8000/data?group={{ groupname }}");
+		}
+		s.onopen = function() {
+			s.send('hi');
+		};
+		s.onmessage = function(e) {
+			var lines = e.data.split('\n');
+
+			for (var i = 0; i < lines.length - 1; i++) {
+				var parts = lines[i].split(' ');
+				var d = parts[0], x = parseFloat(parts[1]), y = parseFloat(parts[2]);
+				if (!(d in data)) data[d] = [];
+				data[d].push([x,y]);
+			}
+
+            var nodes = [
+                'group1-1',
+                'group1-2',
+                'group1-3',
+                'group1-4',
+                'group1-5',
+                'group1-6',
+            ];
+
+            var plots = {};
+			for (var d in data) {
+                plots[d] = []
+                plots[d].push({ data: data[d].slice(-10), label: nodes[d]});
+            };
+
+            for (var i in plots) {
+            	try {
+	                $.plot($("#"+i), plots[i], {
+	                    series: { lines: { show: true, fill: true }, points: { show:true}}, xaxes: [ {tickSize: 2}],});
+            	}
+            	catch (e) {
+            	}
+            }
+			s.send('');
+		};
+	};
+	</script>
+</head>
+	<body>
+	<h3>交换机实时流量 —— {{ groupname }}</h3>
+        {% for item in group %}
+        	<label>{{ item }}</label>
+	        <div id="{{ item }}" style="width:600px;height:300px"></div>
+        {% endfor %}
+	</body>
+</html>
