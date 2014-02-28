@@ -8,4 +8,16 @@
 * 对于超过阀值的监控类型，会进行高亮显示
 
 
+```python
+    yum -y install redis-server
+    yum -y install python-dev
+    pip install gevent
+    pip install redis
 
+    end
+```
+
+
+作者 [@小芮][1]
+
+[1]: https://xiaorui.cc
